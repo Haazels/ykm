@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0a0a0a;
+  --accent: #ff3d00;
+  --text: #ffffff;
+  --muted: #888888;
+  --card: #161616;
+  --border: #222222;
+  --cyan: #00d9ff;
+  --yellow: #ffd700;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-inter), sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Hide native cursor on desktop where the custom cursor is active */
+@media (pointer: fine) {
+  body {
+    cursor: none;
+  }
+  a,
+  button {
+    cursor: none;
+  }
+}
+
+::selection {
+  background: var(--accent);
+  color: #000;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
