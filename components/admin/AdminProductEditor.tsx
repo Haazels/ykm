@@ -1,8 +1,8 @@
 "use client";
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
-import Image from "next/image";
-import { ImageOff, X } from "lucide-react";
+import ProductImage from "@/components/shop/ProductImage";
+import { X } from "lucide-react";
 
 import type { Product, ProductSpec } from "@/types";
 import { useProducts } from "@/context/ProductsContext";
@@ -165,10 +165,7 @@ export default function AdminProductEditor({
       return;
     }
 
-    if (!form.img.trim()) {
-      showToast("Add a product photo");
-      return;
-    }
+    const finalImg = form.img.trim() || "/images/koala.jpg";
 
     if (
       old !== undefined &&
@@ -206,8 +203,8 @@ export default function AdminProductEditor({
               form.badge.trim() ||
               undefined,
             cat: form.cat,
-            img: form.img.trim(),
-            thumb: form.img.trim(),
+            img: finalImg,
+            thumb: finalImg,
             specs: cleanSpecs,
           });
 
@@ -234,8 +231,8 @@ export default function AdminProductEditor({
               form.badge.trim() ||
               undefined,
             cat: form.cat,
-            img: form.img.trim(),
-            thumb: form.img.trim(),
+            img: finalImg,
+            thumb: finalImg,
             specs: cleanSpecs,
           }
         );
@@ -259,11 +256,6 @@ export default function AdminProductEditor({
       setIsSaving(false);
     }
   };
-  const isValidImage =
-  form.img.trim().startsWith("/") ||
-  form.img.trim().startsWith("http://") ||
-  form.img.trim().startsWith("https://") ||
-  form.img.trim().startsWith("data:image");
 
   return (
     <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/80 px-4 py-8 backdrop-blur-sm">
@@ -301,20 +293,13 @@ export default function AdminProductEditor({
 
           <div className="flex items-center gap-3">
             <div className="relative flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#1a1a1a]">
-              {isValidImage ? (
-                    <Image
-                      src={form.img}
-                      alt="Product"
-                      fill
-                      sizes="80px"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <ImageOff
-                      size={22}
-                      className="text-[#444]"
-                    />
-                  )}
+              <ProductImage
+                src={form.img.trim() || "/images/koala.jpg"}
+                alt="Product"
+                fill
+                sizes="80px"
+                className="object-cover"
+              />
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -346,7 +331,7 @@ export default function AdminProductEditor({
                 img: event.target.value,
               }))
             }
-            placeholder="/images/product.jpeg"
+            placeholder="/images/koala.jpg"
             className="mt-2 w-full rounded-md border border-[#333] bg-[#0d0d0d] px-2.5 py-2 text-xs text-white placeholder:text-[#555] focus:border-accent focus:outline-none"
           />
         </div>

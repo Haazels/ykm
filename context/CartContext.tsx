@@ -15,6 +15,7 @@ import { usePurchaseHistory } from "@/context/PurchaseHistoryContext";
 import { useProducts } from "@/context/ProductsContext";
 import { useAdmin } from "@/context/AdminContext";
 import { useOrders } from "@/context/OrderContext";
+import { openRazorpayCheckout } from "@/lib/razorpay/client";
 
 interface CartContextValue {
   cart: CartItem[];
@@ -119,43 +120,100 @@ export function CartProvider({ children }: { children: ReactNode }) {
         deliveryAddress: deliveryAddress.trim(),
       };
 
-      showToast("Creating your order...");
+      showToast("Starting payment...");
 
       void (async () => {
-        const orderId = await createOrder({
-          orderNumber,
-          buyerName: buyerName.trim(),
-          buyerContact: user?.email ?? "unknown",
-          deliveryAddress: deliveryAddress.trim(),
-          totalAmount: total,
-          items: currentCart.map((item) => ({
-            productId: item.id,
-            productName: item.name,
-            productThumbnail: item.thumb,
-            price: item.price,
-            quantity: item.qty,
-          })),
-        });
+        try {
+          const createOrderResponse = await fetch("/api/razorpay/create-order", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              items: currentCart.map((item) => ({
+                id: item.id,
+                qty: item.qty,
+              })),
+            }),
+          });
 
-        if (!orderId) {
-          showToast(
-            "Failed to create order. Please try again."
-          );
-          return;
+          const createOrderData = await createOrderResponse.json();
+
+          if (!createOrderResponse.ok) {
+            showToast(createOrderData.error ?? "Could not start payment.");
+            return;
+          }
+
+          const { razorpayOrderId, amount, currency, keyId } = createOrderData;
+
+          await openRazorpayCheckout({
+            razorpayOrderId,
+            amount,
+            currency,
+            keyId,
+            buyerName: buyerName.trim(),
+            buyerEmail: user?.email,
+            onDismiss: () => {
+              showToast("Payment cancelled.");
+            },
+            onSuccess: (paymentResponse) => {
+              void (async () => {
+                const verifyResponse = await fetch("/api/razorpay/verify", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(paymentResponse),
+                });
+
+                const verifyData = await verifyResponse.json();
+
+                if (!verifyData.verified) {
+                  showToast(
+                    "Payment could not be verified. If money was deducted, contact support."
+                  );
+                  return;
+                }
+
+                showToast("Payment successful — creating your order...");
+
+                const orderId = await createOrder({
+                  orderNumber,
+                  buyerName: buyerName.trim(),
+                  buyerContact: user?.email ?? "unknown",
+                  deliveryAddress: deliveryAddress.trim(),
+                  totalAmount: total,
+                  items: currentCart.map((item) => ({
+                    productId: item.id,
+                    productName: item.name,
+                    productThumbnail: item.thumb,
+                    price: item.price,
+                    quantity: item.qty,
+                  })),
+                });
+
+                if (!orderId) {
+                  showToast(
+                    "Payment succeeded but the order couldn't be saved. Please contact support with your payment ID: " +
+                      paymentResponse.razorpay_payment_id
+                  );
+                  return;
+                }
+
+                currentCart.forEach((item) => {
+                  decrementStock(item.id, item.qty);
+                });
+
+                recordPurchase(purchaseOrder);
+                addOrder(purchaseOrder);
+
+                setIsCartOpen(false);
+                setCart([]);
+
+                showToast("✓ Order placed successfully!");
+              })();
+            },
+          });
+        } catch (err) {
+          console.error("Checkout failed:", err);
+          showToast("Something went wrong starting payment. Please try again.");
         }
-
-        // Supabase order was successfully created.
-        currentCart.forEach((item) => {
-          decrementStock(item.id, item.qty);
-        });
-
-        recordPurchase(purchaseOrder);
-        addOrder(purchaseOrder);
-
-        setIsCartOpen(false);
-        setCart([]);
-
-        showToast("✓ Order created successfully!");
       })();
     });
   },

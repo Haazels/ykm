@@ -8,7 +8,12 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "framerusercontent.com" },
       { protocol: "https", hostname: "img.youtube.com" },
       { protocol: "https", hostname: "images.unsplash.com" },
-      { protocol: "https", hostname: "aqllpyipitdeuffmozlk.supabase.co",},
+      { protocol: "https", hostname: "**.supabase.co" },
+      { protocol: "https", hostname: "youknowmeyt.com" },
+      { protocol: "https", hostname: "www.youknowmeyt.com" },
+      { protocol: "https", hostname: "res.cloudinary.com" },
+      { protocol: "https", hostname: "i.imgur.com" },
+      { protocol: "https", hostname: "**.githubusercontent.com" },
     ],
   },
   experimental: {

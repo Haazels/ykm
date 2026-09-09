@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import ProductImage from "@/components/shop/ProductImage";
 import { Package } from "lucide-react";
 import { useAdmin } from "@/context/AdminContext";
 
@@ -60,7 +60,7 @@ export default function AdminOrdersPanel() {
             {order.items.map((item) => (
               <div key={item.id} className="flex items-center gap-2.5">
                 <div className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-md bg-[#111]">
-                  <Image src={item.thumb} alt={item.name} fill sizes="36px" className="object-cover" />
+                  <ProductImage src={item.thumb} alt={item.name} fill sizes="36px" className="object-cover" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-xs font-medium">{item.name}</div>

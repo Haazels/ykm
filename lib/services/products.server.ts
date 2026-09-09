@@ -1,7 +1,24 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Product } from "@/types";
 
+function normalizeImagePath(url: any): string {
+  if (typeof url !== "string" || !url.trim()) return "/images/koala.jpg";
+  const trimmed = url.trim();
+  if (trimmed.startsWith("/image/")) {
+    return "/images/" + trimmed.slice(7);
+  }
+  if (trimmed.includes("1785837303729.jpeg")) {
+    return "/images/koala.jpg";
+  }
+  return trimmed;
+}
+
 function mapDatabaseProduct(row: any): Product {
+  const imgUrl = normalizeImagePath(row.image_url);
+  const thumbUrl = row.thumbnail_url
+    ? normalizeImagePath(row.thumbnail_url)
+    : imgUrl;
+
   return {
     id: Number(row.id),
     name: row.name,
@@ -12,8 +29,8 @@ function mapDatabaseProduct(row: any): Product {
       row.old_price !== null && row.old_price !== undefined
         ? Number(row.old_price)
         : undefined,
-    img: row.image_url,
-    thumb: row.thumbnail_url,
+    img: imgUrl,
+    thumb: thumbUrl,
     desc: row.description,
     specs: Array.isArray(row.specs) ? row.specs : [],
     stock: Number(row.stock),

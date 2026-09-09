@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import ProductImage from "@/components/shop/ProductImage";
 import { AnimatePresence, motion } from "framer-motion";
 import { LogOut, Package, X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
@@ -102,7 +102,7 @@ export default function AccountDrawer({ isOpen, onClose }: AccountDrawerProps) {
                           {order.items.map((item) => (
                             <div key={item.id} className="flex items-center gap-2.5">
                               <div className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-md bg-[#111]">
-                                <Image src={item.thumb} alt={item.name} fill sizes="36px" className="object-cover" />
+                                <ProductImage src={item.thumb} alt={item.name} fill sizes="36px" className="object-cover" />
                               </div>
                               <div className="min-w-0 flex-1">
                                 <div className="truncate text-xs font-medium">{item.name}</div>
@@ -133,7 +133,7 @@ export default function AccountDrawer({ isOpen, onClose }: AccountDrawerProps) {
                     {viewedProducts.map((p) => (
                       <div key={p.id} className="flex items-center gap-3">
                         <div className="relative h-11 w-11 flex-shrink-0 overflow-hidden rounded-lg bg-[#1a1a1a]">
-                          <Image src={p.thumb} alt={p.name} fill sizes="44px" className="object-cover" />
+                          <ProductImage src={p.thumb} alt={p.name} fill sizes="44px" className="object-cover" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="truncate text-xs font-medium">{p.name}</div>

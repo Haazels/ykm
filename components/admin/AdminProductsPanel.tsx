@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import ProductImage from "@/components/shop/ProductImage";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 
 import { useProducts } from "@/context/ProductsContext";
@@ -75,7 +75,7 @@ export default function AdminProductsPanel() {
               className="flex items-center gap-3.5 rounded-xl border border-[#222] bg-[#161616] p-3.5"
             >
               <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-[#111]">
-                <Image
+                <ProductImage
                   src={product.thumb}
                   alt={product.name}
                   fill

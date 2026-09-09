@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import ProductImage from "@/components/shop/ProductImage";
 import { AnimatePresence, motion } from "framer-motion";
 import { LocateFixed, ShoppingBag, X } from "lucide-react";
 import { useCart } from "@/context/CartContext";
@@ -75,7 +75,7 @@ export default function CartDrawer() {
                   {cart.map((item) => (
                     <div key={item.id} className="flex gap-3 border-b border-[#1a1a1a] py-3.5">
                       <div className="relative h-[60px] w-[60px] flex-shrink-0 overflow-hidden rounded-lg bg-[#1a1a1a]">
-                        <Image src={item.thumb} alt={item.name} fill sizes="60px" className="object-cover" />
+                        <ProductImage src={item.thumb} alt={item.name} fill sizes="60px" className="object-cover" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="mb-0.5 truncate text-[13px] font-semibold">{item.name}</div>

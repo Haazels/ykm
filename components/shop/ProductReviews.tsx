@@ -117,7 +117,14 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                 <div className="flex flex-wrap gap-1.5">
                   {r.images.map((img, i) => (
                     <div key={i} className="relative h-10 w-10 overflow-hidden rounded-md bg-[#111]">
-                      <Image src={img} alt="review photo" fill sizes="40px" className="object-cover" />
+                      <Image
+                        src={img}
+                        alt="review photo"
+                        fill
+                        sizes="40px"
+                        unoptimized={typeof img === "string" && img.startsWith("data:")}
+                        className="object-cover"
+                      />
                     </div>
                   ))}
                 </div>
@@ -195,6 +202,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                     alt="uploaded preview"
                     fill
                     sizes="50px"
+                    unoptimized
                     className="rounded-md border border-[#333] object-cover"
                   />
                   <button
