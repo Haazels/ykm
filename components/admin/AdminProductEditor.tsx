@@ -259,26 +259,28 @@ export default function AdminProductEditor({
 
   return (
     <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/80 px-4 py-8 backdrop-blur-sm">
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label={
-          isNew
-            ? "Add new product"
-            : `Edit ${product.name}`
-        }
-        className="relative max-h-[90vh] w-full max-w-[560px] overflow-y-auto rounded-2xl border border-[#222] bg-[#111] p-6"
-      >
+      <div className="relative max-h-[90vh] w-full max-w-[560px] overflow-hidden rounded-2xl border border-[#222] bg-[#111]">
         <button
           type="button"
           onClick={onClose}
           disabled={isSaving}
           aria-label="Close"
-          className="absolute right-4 top-4 text-muted transition-colors hover:text-white disabled:opacity-40"
+          className="absolute right-4 top-4 z-10 text-muted transition-colors hover:text-white disabled:opacity-40"
         >
           <X size={18} />
         </button>
 
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={
+            isNew
+              ? "Add new product"
+              : `Edit ${product.name}`
+          }
+          data-lenis-prevent
+          className="max-h-[90vh] w-[calc(100%+2rem)] overflow-y-auto p-6 pr-[calc(1.5rem+2rem)] [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
         <h2 className="mb-5 font-display text-2xl tracking-[0.03em]">
           {isNew
             ? "Add New Product"
@@ -574,6 +576,7 @@ export default function AdminProductEditor({
                 ? "Add Product"
                 : "Save Changes"}
           </button>
+        </div>
         </div>
       </div>
     </div>
