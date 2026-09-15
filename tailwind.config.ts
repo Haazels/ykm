@@ -10,7 +10,7 @@ const config: Config = {
     extend: {
       colors: {
         bg: "#0a0a0a",
-        accent: "#ff3d00",
+        accent: "#FFD700",
         text: "#ffffff",
         muted: "#888888",
         card: "#161616",
@@ -19,7 +19,8 @@ const config: Config = {
         yellow: "#ffd700",
       },
       fontFamily: {
-        display: ["var(--font-bebas)", "sans-serif"],
+        display: ["var(--font-roboto-condensed)", "var(--font-bebas)", "sans-serif"],
+        condensed: ["var(--font-roboto-condensed)", "sans-serif"],
         body: ["var(--font-inter)", "sans-serif"],
       },
       keyframes: {

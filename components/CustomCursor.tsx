@@ -49,7 +49,7 @@ export default function CustomCursor() {
       cursor!.style.height = "12px";
       ring!.style.width = "36px";
       ring!.style.height = "36px";
-      ring!.style.borderColor = "rgba(255,61,0,.45)";
+      ring!.style.borderColor = "rgba(255,215,0,.45)";
     };
 
     const attachHoverListeners = () => {
@@ -94,7 +94,7 @@ export default function CustomCursor() {
       />
       <div
         ref={ringRef}
-        className="pointer-events-none fixed z-[9998] h-9 w-9 -translate-x-1/2 -translate-y-1/2 rounded-full border-[1.5px] border-[rgba(255,61,0,.45)] transition-[width,height,border-color] duration-300 hidden md:block"
+        className="pointer-events-none fixed z-[9998] h-9 w-9 -translate-x-1/2 -translate-y-1/2 rounded-full border-[1.5px] border-[rgba(255,215,0,.45)] transition-[width,height,border-color] duration-300 hidden md:block"
         aria-hidden="true"
       />
     </>

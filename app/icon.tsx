@@ -19,7 +19,7 @@ export default function Icon() {
       >
         <div
           style={{
-            color: "#ff3d00",
+            color: "#FFD700",
             fontSize: 18,
             fontWeight: 700,
             fontFamily: "sans-serif",

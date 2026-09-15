@@ -1,11 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Bebas_Neue, Inter } from "next/font/google";
+import { Bebas_Neue, Inter, Roboto_Condensed } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
 import CustomCursor from "@/components/CustomCursor";
 import Loader from "@/components/Loader";
-import Navbar from "@/components/Navbar";
 import BackToTop from "@/components/BackToTop";
 import Toast from "@/components/Toast";
 import CartDrawer from "@/components/shop/CartDrawer";
@@ -15,6 +14,13 @@ const bebasNeue = Bebas_Neue({
   subsets: ["latin"],
   weight: "400",
   variable: "--font-bebas",
+  display: "swap",
+});
+
+const robotoCondensed = Roboto_Condensed({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  variable: "--font-roboto-condensed",
   display: "swap",
 });
 
@@ -88,13 +94,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${bebasNeue.variable} ${inter.variable}`}>
+    <html
+      lang="en"
+      className={`${bebasNeue.variable} ${robotoCondensed.variable} ${inter.variable}`}
+    >
       <body>
         <Providers>
           <SmoothScrollProvider />
           <CustomCursor />
           <Loader />
-          <Navbar />
           {children}
           <BackToTop />
           <Toast />

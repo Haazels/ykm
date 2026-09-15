@@ -28,7 +28,7 @@ export default function Reviews() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: i * 0.1 }}
-            className="review-card flex-shrink-0 basis-[280px] scroll-snap-start rounded-2xl border border-[#222] bg-card p-5 transition-[border-color,box-shadow] duration-300 hover:border-accent/30 hover:shadow-[0_8px_32px_rgba(255,61,0,0.08)]"
+            className="review-card flex-shrink-0 basis-[280px] scroll-snap-start rounded-2xl border border-[#222] bg-card p-5 transition-[border-color,box-shadow] duration-300 hover:border-accent/30 hover:shadow-[0_8px_32px_rgba(255,215,0,0.1)]"
             style={{ scrollSnapAlign: "start" }}
           >
             <div className="mb-3 flex items-center gap-3">

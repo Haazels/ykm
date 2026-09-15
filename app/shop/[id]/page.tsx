@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { PRODUCTS } from "@/lib/products";
 import { getProductServer } from "@/lib/services/products.server";
 import ProductDetail from "@/components/shop/ProductDetail";
+import Navbar from "@/components/Navbar";
 
 interface ProductPageProps {
   params: Promise<{ id: string }>;
@@ -59,5 +60,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   if (!seedProduct) notFound();
 
-  return <ProductDetail initialProduct={seedProduct} />;
+  return (
+    <>
+      <Navbar />
+      <ProductDetail initialProduct={seedProduct} />
+    </>
+  );
 }

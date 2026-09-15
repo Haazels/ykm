@@ -13,7 +13,7 @@ export default function ShopCard({ product, index }: { product: Product; index: 
 
   return (
     <motion.div
-      className="shop-card group relative overflow-hidden rounded-2xl border border-transparent bg-card transition-[box-shadow,border-color] duration-300 hover:border-accent hover:shadow-[0_18px_40px_rgba(255,61,0,0.12)]"
+      className="shop-card group relative overflow-hidden rounded-2xl border border-transparent bg-card transition-[box-shadow,border-color] duration-300 hover:border-accent hover:shadow-[0_18px_40px_rgba(255,215,0,0.15)]"
       initial={{ opacity: 0, scale: 0.93, y: 18 }}
       whileInView={{ opacity: 1, scale: 1, y: 0 }}
       viewport={{ once: true, margin: "0px 0px -30px 0px" }}
