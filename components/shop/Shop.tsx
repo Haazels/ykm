@@ -42,7 +42,7 @@ export default function Shop() {
         ))}
       </div>
 
-      <div className="mx-auto grid max-w-[1200px] grid-cols-2 gap-3.5 px-4 pb-20 md:grid-cols-3 lg:grid-cols-4">
+      <div className="mx-auto grid max-w-[1200px] grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 px-4 pb-20">
         {items.map((product, i) => (
           <ShopCard key={product.id} product={product} index={i} />
         ))}
