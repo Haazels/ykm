@@ -13,6 +13,14 @@ export function generateStaticParams() {
   return PRODUCTS.map((p) => ({ id: String(p.id) }));
 }
 
+// Allow IDs not in generateStaticParams (e.g. admin-added products) to be
+// server-rendered on demand instead of returning 404/500.
+export const dynamicParams = true;
+
+// Force SSR for this route so admin-added product IDs are always
+// resolved from Supabase at request time on the server.
+export const dynamic = "force-dynamic";
+
 // Looks the product up in the hardcoded seed list first (fast, no
 // network call, covers the sample products), then falls back to
 // Supabase for anything added or edited through the admin panel.

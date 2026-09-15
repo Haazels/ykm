@@ -1,5 +1,18 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import type { Product } from "@/types";
+
+const SUPABASE_URL =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  "https://aqllpyipitdeuffmozlk.supabase.co";
+const SUPABASE_KEY =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  "sb_publishable_mQQKqIIX_laUN2TgDiiVtw_NZCiwvEl";
+
+// Lightweight anonymous client — no cookies() needed for a public product lookup.
+// Using this avoids calling cookies() which throws during static generation
+// (Next.js SSG), causing 500 errors on deployed /shop/[id] pages for
+// admin-added products not in the hardcoded seed list.
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 function normalizeImagePath(url: any): string {
   if (typeof url !== "string" || !url.trim()) return "/images/koala.jpg";
@@ -43,8 +56,6 @@ function mapDatabaseProduct(row: any): Product {
  * hardcoded seed list in lib/products.ts).
  */
 export async function getProductServer(id: number): Promise<Product | null> {
-  const supabase = await createClient();
-
   const { data, error } = await supabase
     .from("products")
     .select("*")
