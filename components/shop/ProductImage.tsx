@@ -34,15 +34,16 @@ export function getValidSrc(src: unknown): string {
 }
 
 /**
- * Wraps next/image with a visible fallback when a photo fails to load
- * (broken URL, deleted file, missing image) by displaying the default
- * fallback image instead of a blank gap or broken icon.
+ * Wraps next/image with a visible fallback and shimmer skeleton loader
+ * while images are loading over the network.
  */
-export default function ProductImage({ src, alt, unoptimized, ...props }: ImageProps) {
+export default function ProductImage({ src, alt, className = "", unoptimized, onLoad, ...props }: ImageProps) {
   const [imgSrc, setImgSrc] = useState<string>(() => getValidSrc(src));
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     setImgSrc(getValidSrc(src));
+    setIsLoading(true);
   }, [src]);
 
   const isDataUrl = typeof imgSrc === "string" && imgSrc.startsWith("data:");
@@ -50,16 +51,27 @@ export default function ProductImage({ src, alt, unoptimized, ...props }: ImageP
   const shouldBeUnoptimized = Boolean(isDataUrl || (isExternal && !isKnownHost(imgSrc)) || unoptimized);
 
   return (
-    <Image
-      {...props}
-      src={imgSrc}
-      alt={alt || "Product"}
-      unoptimized={shouldBeUnoptimized}
-      onError={() => {
-        if (imgSrc !== FALLBACK_IMAGE) {
-          setImgSrc(FALLBACK_IMAGE);
-        }
-      }}
-    />
+    <>
+      {isLoading && (
+        <div className="absolute inset-0 z-10 skeleton-shimmer bg-[#141418] transition-opacity duration-500" />
+      )}
+      <Image
+        {...props}
+        src={imgSrc}
+        alt={alt || "Product"}
+        unoptimized={shouldBeUnoptimized}
+        className={`${className} transition-opacity duration-500 ${isLoading ? "opacity-0" : "opacity-100"}`}
+        onLoad={(e) => {
+          setIsLoading(false);
+          if (onLoad) onLoad(e);
+        }}
+        onError={() => {
+          setIsLoading(false);
+          if (imgSrc !== FALLBACK_IMAGE) {
+            setImgSrc(FALLBACK_IMAGE);
+          }
+        }}
+      />
+    </>
   );
 }

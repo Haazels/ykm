@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import ProductImage from "@/components/shop/ProductImage";
 import { motion } from "framer-motion";
 import YtCarousel from "@/components/YtCarousel";
 import LiveStat from "@/components/LiveStat";
@@ -57,7 +57,7 @@ export default function AboutVideos() {
               whileHover={{ scale: 1.03 }}
               className="relative aspect-[4/5] w-[62%] overflow-hidden rounded-2xl"
             >
-              <Image
+              <ProductImage
                 src="https://framerusercontent.com/images/9XWpgjJf88CzI2OVdje9z6HqzoY.jpeg"
                 alt="Niladri"
                 fill
@@ -73,7 +73,7 @@ export default function AboutVideos() {
               whileHover={{ scale: 1.03 }}
               className="relative aspect-square w-[28%] overflow-hidden rounded-[10px]"
             >
-              <Image
+              <ProductImage
                 src="https://framerusercontent.com/images/n2Ta9puFJY9t6ABZt8jQhhrxcM.jpeg"
                 alt="YKM logo"
                 fill

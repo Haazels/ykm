@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import Image from "next/image";
+import ProductImage from "@/components/shop/ProductImage";
 import { motion } from "framer-motion";
 import { ChevronRight, Play } from "lucide-react";
 import { SHORTS } from "@/lib/content";
@@ -48,7 +48,7 @@ export default function YtCarousel() {
               className="relative block aspect-[9/16] w-full flex-shrink-0 basis-full scroll-snap-start overflow-hidden bg-[#111]"
               style={{ scrollSnapAlign: "start" }}
             >
-              <Image
+              <ProductImage
                 src={video.thumbnail}
                 alt="YKM video"
                 fill
