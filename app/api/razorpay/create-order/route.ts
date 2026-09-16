@@ -102,8 +102,18 @@ export async function POST(request: Request) {
     });
   } catch (err: any) {
     console.error("create-order failed:", err);
+    const errorDetails =
+      err?.error?.description ||
+      err?.description ||
+      err?.message ||
+      (typeof err === "string" ? err : null);
+
     return NextResponse.json(
-      { error: err?.message || "Could not start payment. Please try again." },
+      {
+        error: errorDetails
+          ? `Payment error: ${errorDetails}`
+          : "Could not start payment. Please try again.",
+      },
       { status: 500 }
     );
   }
