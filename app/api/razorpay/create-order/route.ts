@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { getRazorpayClient, getRazorpayKeyId } from "@/lib/razorpay/server";
+import { createRazorpayOrder } from "@/lib/razorpay/server";
 import { PRODUCTS } from "@/lib/products";
 
 interface CartItemInput {
@@ -87,18 +87,16 @@ export async function POST(request: Request) {
     // Razorpay amounts are in the smallest currency unit — paise for INR.
     const amountInPaise = Math.round(totalRupees * 100);
 
-    const razorpay = getRazorpayClient();
-    const order = await razorpay.orders.create({
-      amount: amountInPaise,
-      currency: "INR",
-      receipt: `ykm_${Date.now()}`,
-    });
+    const { order, keyId } = await createRazorpayOrder(
+      amountInPaise,
+      `ykm_${Date.now()}`
+    );
 
     return NextResponse.json({
       razorpayOrderId: order.id,
       amount: order.amount,
       currency: order.currency,
-      keyId: getRazorpayKeyId(),
+      keyId,
     });
   } catch (err: any) {
     console.error("create-order failed:", err);
