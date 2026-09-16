@@ -12,7 +12,7 @@ export default function AboutVideos() {
   const { setSubBase } = useStats();
 
   return (
-    <section id="info" className="mx-auto max-w-[1200px] px-6 py-20 md:px-8">
+    <section id="about" className="mx-auto max-w-[1200px] px-6 py-20 md:px-8">
       <div className="grid grid-cols-1 items-start gap-14 md:grid-cols-[340px_1fr] md:gap-16">
         {/* Left: video carousel */}
         <div>

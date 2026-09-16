@@ -34,12 +34,12 @@ export default function Navbar() {
           Home
         </a>
 
-        {/* Info */}
+        {/* About */}
         <a
-          href="#info"
+          href="#about"
           className="rounded-full border border-white/20 bg-black/60 px-4 py-1.5 text-xs font-medium text-white backdrop-blur-md transition-all duration-200 hover:border-white hover:bg-white/10 sm:px-5 sm:text-sm"
         >
-          Info
+          About
         </a>
 
         {/* Shop */}

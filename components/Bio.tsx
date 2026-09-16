@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 export default function Bio() {
   return (
-    <section id="info" className="relative mx-auto w-full max-w-[1440px] px-6 pt-24 pb-16 md:px-8 md:pt-36 md:pb-24">
+    <section id="about" className="relative mx-auto w-full max-w-[1440px] px-6 pt-24 pb-16 md:px-8 md:pt-36 md:pb-24">
       <div className="flex w-full justify-end">
         <motion.p
           initial={{ opacity: 0, y: 24 }}
