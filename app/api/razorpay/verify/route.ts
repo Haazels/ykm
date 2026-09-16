@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { createHmac } from "crypto";
+import { getRazorpayKeySecret } from "@/lib/razorpay/server";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {
@@ -10,7 +13,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ verified: false }, { status: 400 });
     }
 
-    const secret = process.env.RAZORPAY_KEY_SECRET;
+    const secret = getRazorpayKeySecret();
     if (!secret) {
       return NextResponse.json(
         { verified: false, error: "Razorpay is not configured." },
@@ -34,3 +37,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ verified: false }, { status: 500 });
   }
 }
+

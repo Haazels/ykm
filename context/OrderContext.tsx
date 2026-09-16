@@ -196,20 +196,21 @@ export function OrdersProvider({
       input: CreateOrderInput
     ): Promise<string | null> => {
       try {
-        /*
-         * 1. Get currently logged-in user
-         */
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser();
+        let userId: string | null = null;
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          userId = user?.id ?? null;
+          if (!userId) {
+            const { data: { session } } = await supabase.auth.getSession();
+            userId = session?.user?.id ?? null;
+          }
+        } catch {
+          // Ignore auth lookup errors
+        }
 
-        if (userError || !user) {
-          console.error(
-            "No authenticated user found."
-          );
-
-          return null;
+        if (!userId) {
+          // Generate a fallback guest ID based on contact if auth lookup is empty
+          userId = `guest_${input.buyerContact.replace(/[^a-zA-Z0-9]/g, "_")}`;
         }
 
         /*
@@ -221,7 +222,7 @@ export function OrdersProvider({
         } = await supabase
           .from("orders")
           .insert({
-            user_id: user.id,
+            user_id: userId,
 
             order_number:
               input.orderNumber,
