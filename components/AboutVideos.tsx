@@ -9,7 +9,7 @@ import { useStats } from "@/context/StatsContext";
 import { CONTACT_EMAIL } from "@/lib/content";
 
 export default function AboutVideos() {
-  const { setSubBase } = useStats();
+  const { subBase, viewBase, setSubBase, setViewBase } = useStats();
 
   return (
     <section id="about" className="mx-auto max-w-[1200px] px-6 py-20 md:px-8">
@@ -85,12 +85,17 @@ export default function AboutVideos() {
 
           <div className="mb-10 mt-2 flex flex-col gap-6">
             <LiveStat
-              base={21000}
+              base={subBase}
               format={(n) => (n / 1000).toFixed(1) + "K+"}
               label="subscribed"
               onTick={setSubBase}
             />
-            <LiveStat base={200000} format={(n) => (n / 1000).toFixed(0) + "K+"} label="views" />
+            <LiveStat
+              base={viewBase}
+              format={(n) => (n / 1000).toFixed(0) + "K+"}
+              label="views"
+              onTick={setViewBase}
+            />
           </div>
 
           <div className="border-t border-[#1e1e1e] pt-8">
