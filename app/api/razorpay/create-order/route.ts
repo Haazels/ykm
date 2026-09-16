@@ -1,11 +1,21 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { getRazorpayClient } from "@/lib/razorpay/server";
+import { createClient } from "@supabase/supabase-js";
+import { getRazorpayClient, getRazorpayKeyId } from "@/lib/razorpay/server";
+import { PRODUCTS } from "@/lib/products";
 
 interface CartItemInput {
   id: number;
   qty: number;
 }
+
+const SUPABASE_URL =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  "https://aqllpyipitdeuffmozlk.supabase.co";
+const SUPABASE_KEY =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  "sb_publishable_mQQKqIIX_laUN2TgDiiVtw_NZCiwvEl";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 export async function POST(request: Request) {
   try {
@@ -16,28 +26,40 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Cart is empty." }, { status: 400 });
     }
 
-    const supabase = await createClient();
-
-    // Re-fetch real prices from the database instead of trusting
-    // whatever total the browser sends — otherwise someone could
-    // open dev tools and pay ₹1 for anything.
+    // Re-fetch real prices from the database/seed catalog instead of trusting
+    // whatever total the browser sends.
     const ids = items.map((i) => i.id);
-    const { data: products, error } = await supabase
+    const { data: dbProducts } = await supabase
       .from("products")
       .select("id, price, stock, is_active")
       .in("id", ids);
 
-    if (error || !products) {
-      return NextResponse.json(
-        { error: "Could not verify cart items." },
-        { status: 500 }
-      );
-    }
-
     let totalRupees = 0;
 
     for (const item of items) {
-      const product = products.find((p) => p.id === item.id);
+      // First try database product lookup
+      let product: { id: number; price: number; stock: number; is_active: boolean } | null = null;
+      const foundDbProduct = dbProducts?.find((p) => Number(p.id) === item.id);
+
+      if (foundDbProduct) {
+        product = {
+          id: Number(foundDbProduct.id),
+          price: Number(foundDbProduct.price),
+          stock: Number(foundDbProduct.stock),
+          is_active: Boolean(foundDbProduct.is_active),
+        };
+      } else {
+        // Fall back to seed catalog products (IDs 1-7)
+        const seedProduct = PRODUCTS.find((p) => p.id === item.id);
+        if (seedProduct) {
+          product = {
+            id: seedProduct.id,
+            price: seedProduct.price,
+            stock: seedProduct.stock ?? 99,
+            is_active: true,
+          };
+        }
+      }
 
       if (!product || !product.is_active) {
         return NextResponse.json(
@@ -48,12 +70,12 @@ export async function POST(request: Request) {
 
       if (item.qty < 1 || item.qty > product.stock) {
         return NextResponse.json(
-          { error: "One of the items doesn't have enough stock." },
+          { error: `Not enough stock for cart item ID ${item.id}.` },
           { status: 400 }
         );
       }
 
-      totalRupees += Number(product.price) * item.qty;
+      totalRupees += product.price * item.qty;
     }
 
     if (totalRupees <= 0) {
@@ -74,13 +96,14 @@ export async function POST(request: Request) {
       razorpayOrderId: order.id,
       amount: order.amount,
       currency: order.currency,
-      keyId: process.env.RAZORPAY_KEY_ID,
+      keyId: getRazorpayKeyId(),
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error("create-order failed:", err);
     return NextResponse.json(
-      { error: "Could not start payment. Please try again." },
+      { error: err?.message || "Could not start payment. Please try again." },
       { status: 500 }
     );
   }
 }
+

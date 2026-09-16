@@ -210,9 +210,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
               })();
             },
           });
-        } catch (err) {
+        } catch (err: any) {
           console.error("Checkout failed:", err);
-          showToast("Something went wrong starting payment. Please try again.");
+          showToast(err?.message ?? "Something went wrong starting payment. Please try again.");
         }
       })();
     });
