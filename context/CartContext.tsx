@@ -17,6 +17,8 @@ import { useAdmin } from "@/context/AdminContext";
 import { useOrders } from "@/context/OrderContext";
 import { openRazorpayCheckout } from "@/lib/razorpay/client";
 
+export type PaymentMethodType = "card" | "netbanking" | "upi";
+
 interface CartContextValue {
   cart: CartItem[];
   isCartOpen: boolean;
@@ -26,8 +28,21 @@ interface CartContextValue {
   removeFromCart: (id: number) => void;
   openCart: () => void;
   closeCart: () => void;
+  clearCart: () => void;
   /** Requires login, decrements stock, and logs the order for both the buyer and the admin panel. */
-  placeOrder: (buyerName: string, deliveryAddress: string) => void;
+  placeOrder: (
+    buyerName: string,
+    deliveryAddress: string,
+    paymentMethod?: PaymentMethodType
+  ) => Promise<{ success: boolean; data?: any; error?: string }>;
+  finalizeOrder: (params: {
+    orderNumber: string;
+    buyerName: string;
+    buyerContact: string;
+    deliveryAddress: string;
+    totalAmount: number;
+    items?: CartItem[];
+  }) => Promise<string | null>;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -73,161 +88,239 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCart((prev) => prev.filter((c) => c.id !== id));
   }, []);
 
+  const clearCart = useCallback(() => {
+    setCart([]);
+  }, []);
+
   const openCart = useCallback(() => setIsCartOpen(true), []);
   const closeCart = useCallback(() => setIsCartOpen(false), []);
 
-  const placeOrder = useCallback(
-  (buyerName: string, deliveryAddress: string) => {
-    requireAuth(() => {
-      if (cart.length === 0) {
-        showToast("Your cart is empty!");
-        return;
-      }
-
-      if (!buyerName.trim() || !deliveryAddress.trim()) {
-        showToast(
-          "Please add your name and delivery address"
-        );
-        return;
-      }
-
-      // Take a snapshot of the current cart.
-      const currentCart = [...cart];
-
-      const total = currentCart.reduce(
-        (sum, item) =>
-          sum + item.price * item.qty,
-        0
-      );
-
-      const orderNumber = `YKM-${Date.now()
-        .toString(36)
-        .toUpperCase()}`;
+  const finalizeOrder = useCallback(
+    async ({
+      orderNumber,
+      buyerName,
+      buyerContact,
+      deliveryAddress,
+      totalAmount,
+      items,
+    }: {
+      orderNumber: string;
+      buyerName: string;
+      buyerContact: string;
+      deliveryAddress: string;
+      totalAmount: number;
+      items?: CartItem[];
+    }): Promise<string | null> => {
+      const orderItemsToProcess = items && items.length > 0 ? items : cart;
+      if (orderItemsToProcess.length === 0) return null;
 
       const purchaseOrder: PurchaseOrder = {
         orderId: orderNumber,
         date: new Date().toISOString(),
-        items: currentCart.map((item) => ({
+        items: orderItemsToProcess.map((item) => ({
           id: item.id,
           name: item.name,
           thumb: item.thumb,
           price: item.price,
           qty: item.qty,
         })),
-        total,
+        total: totalAmount,
         buyerName: buyerName.trim(),
-        buyerContact: user?.email ?? "unknown",
+        buyerContact,
         deliveryAddress: deliveryAddress.trim(),
       };
 
-      showToast("Starting payment...");
+      const orderId = await createOrder({
+        orderNumber,
+        buyerName: buyerName.trim(),
+        buyerContact,
+        deliveryAddress: deliveryAddress.trim(),
+        totalAmount,
+        items: orderItemsToProcess.map((item) => ({
+          productId: item.id,
+          productName: item.name,
+          productThumbnail: item.thumb,
+          price: item.price,
+          quantity: item.qty,
+        })),
+      });
 
-      void (async () => {
-        try {
-          const createOrderResponse = await fetch("/api/razorpay/create-order", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              items: currentCart.map((item) => ({
-                id: item.id,
-                qty: item.qty,
-              })),
-            }),
-          });
+      if (!orderId) {
+        console.error("Order could not be saved to database.");
+        return null;
+      }
 
-          const createOrderData = await createOrderResponse.json();
+      orderItemsToProcess.forEach((item) => {
+        decrementStock(item.id, item.qty);
+      });
 
-          if (!createOrderResponse.ok) {
-            showToast(createOrderData.error ?? "Could not start payment.");
+      recordPurchase(purchaseOrder);
+      addOrder(purchaseOrder);
+      setCart([]);
+
+      return orderId;
+    },
+    [cart, createOrder, decrementStock, recordPurchase, addOrder]
+  );
+
+  const placeOrder = useCallback(
+    async (
+      buyerName: string,
+      deliveryAddress: string,
+      paymentMethod: PaymentMethodType = "card"
+    ): Promise<{ success: boolean; data?: any; error?: string }> => {
+      return new Promise((resolve) => {
+        requireAuth(() => {
+          if (cart.length === 0) {
+            showToast("Your cart is empty!");
+            resolve({ success: false, error: "Cart is empty" });
             return;
           }
 
-          const { razorpayOrderId, amount, currency, keyId } = createOrderData;
+          if (!buyerName.trim() || !deliveryAddress.trim()) {
+            showToast("Please add your name and delivery address");
+            resolve({ success: false, error: "Missing delivery details" });
+            return;
+          }
 
-          await openRazorpayCheckout({
-            razorpayOrderId,
-            amount,
-            currency,
-            keyId,
-            buyerName: buyerName.trim(),
-            buyerEmail: user?.email,
-            onDismiss: () => {
-              showToast("Payment cancelled.");
-            },
-            onSuccess: (paymentResponse) => {
-              void (async () => {
-                const verifyResponse = await fetch("/api/razorpay/verify", {
+          const currentCart = [...cart];
+          const total = currentCart.reduce(
+            (sum, item) => sum + item.price * item.qty,
+            0
+          );
+
+          const orderNumber = `YKM-${Date.now().toString(36).toUpperCase()}`;
+
+          showToast("Starting secure Razorpay checkout...");
+
+          void (async () => {
+            try {
+              const createOrderResponse = await fetch(
+                "/api/razorpay/create-order",
+                {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(paymentResponse),
-                });
-
-                const verifyData = await verifyResponse.json();
-
-                if (!verifyData.verified) {
-                  showToast(
-                    "Payment could not be verified. If money was deducted, contact support."
-                  );
-                  return;
+                  body: JSON.stringify({
+                    items: currentCart.map((item) => ({
+                      id: item.id,
+                      qty: item.qty,
+                    })),
+                    paymentMethod,
+                    customerName: buyerName.trim(),
+                    orderNumber,
+                    generateQr: paymentMethod === "upi",
+                  }),
                 }
+              );
 
-                showToast("Payment successful — creating your order...");
+              const createOrderData = await createOrderResponse.json();
 
-                const orderId = await createOrder({
-                  orderNumber,
-                  buyerName: buyerName.trim(),
-                  buyerContact: user?.email ?? "unknown",
-                  deliveryAddress: deliveryAddress.trim(),
-                  totalAmount: total,
-                  items: currentCart.map((item) => ({
-                    productId: item.id,
-                    productName: item.name,
-                    productThumbnail: item.thumb,
-                    price: item.price,
-                    quantity: item.qty,
-                  })),
+              if (!createOrderResponse.ok) {
+                const errorMsg =
+                  createOrderData.error ?? "Could not start payment.";
+                showToast(errorMsg);
+                resolve({ success: false, error: errorMsg });
+                return;
+              }
+
+              // If UPI with QR was requested, return the order & QR details to the caller
+              if (paymentMethod === "upi") {
+                resolve({
+                  success: true,
+                  data: {
+                    ...createOrderData,
+                    buyerName: buyerName.trim(),
+                    deliveryAddress: deliveryAddress.trim(),
+                    buyerContact: user?.email ?? "unknown",
+                    cartSnapshot: currentCart,
+                  },
                 });
+                return;
+              }
 
-                if (!orderId) {
-                  showToast(
-                    "Payment succeeded but the order couldn't be saved. Please contact support with your payment ID: " +
-                      paymentResponse.razorpay_payment_id
-                  );
-                  return;
-                }
+              // For Card and Net Banking, launch Razorpay Checkout modal
+              const { razorpayOrderId, amount, currency, keyId } =
+                createOrderData;
 
-                currentCart.forEach((item) => {
-                  decrementStock(item.id, item.qty);
-                });
+              await openRazorpayCheckout({
+                razorpayOrderId,
+                amount,
+                currency,
+                keyId,
+                buyerName: buyerName.trim(),
+                buyerEmail: user?.email,
+                preferredMethod: paymentMethod,
+                onDismiss: () => {
+                  showToast("Payment cancelled.");
+                  resolve({ success: false, error: "Payment dismissed" });
+                },
+                onSuccess: (paymentResponse) => {
+                  void (async () => {
+                    const verifyResponse = await fetch(
+                      "/api/razorpay/verify",
+                      {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          ...paymentResponse,
+                          orderNumber,
+                        }),
+                      }
+                    );
 
-                recordPurchase(purchaseOrder);
-                addOrder(purchaseOrder);
+                    const verifyData = await verifyResponse.json();
 
-                setIsCartOpen(false);
-                setCart([]);
+                    if (!verifyData.verified) {
+                      showToast(
+                        "Payment could not be verified. If money was deducted, contact support."
+                      );
+                      resolve({ success: false, error: "Verification failed" });
+                      return;
+                    }
 
-                showToast("✓ Order placed successfully!");
-              })();
-            },
-          });
-        } catch (err: any) {
-          console.error("Checkout failed:", err);
-          showToast(err?.message ?? "Something went wrong starting payment. Please try again.");
-        }
-      })();
-    });
-  },
-  [
-    cart,
-    requireAuth,
-    user,
-    showToast,
-    createOrder,
-    decrementStock,
-    recordPurchase,
-    addOrder,
-  ]
-);
+                    showToast("Payment verified — creating your order...");
+
+                    const orderId = await finalizeOrder({
+                      orderNumber,
+                      buyerName: buyerName.trim(),
+                      buyerContact: user?.email ?? "unknown",
+                      deliveryAddress: deliveryAddress.trim(),
+                      totalAmount: total,
+                      items: currentCart,
+                    });
+
+                    if (!orderId) {
+                      showToast(
+                        "Payment succeeded but order couldn't be saved. Ref: " +
+                          paymentResponse.razorpay_payment_id
+                      );
+                      resolve({
+                        success: true,
+                        error: "Order record failed",
+                      });
+                      return;
+                    }
+
+                    setIsCartOpen(false);
+                    showToast("✓ Order placed successfully!");
+                    resolve({ success: true, data: { orderId, orderNumber } });
+                  })();
+                },
+              });
+            } catch (err: any) {
+              console.error("Checkout failed:", err);
+              const errMsg =
+                err?.message ?? "Something went wrong starting payment.";
+              showToast(errMsg);
+              resolve({ success: false, error: errMsg });
+            }
+          })();
+        });
+      });
+    },
+    [cart, requireAuth, user, showToast, finalizeOrder]
+  );
+
 
   const totalQty = useMemo(() => cart.reduce((a, c) => a + c.qty, 0), [cart]);
   const totalPrice = useMemo(
@@ -244,7 +337,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     removeFromCart,
     openCart,
     closeCart,
+    clearCart,
     placeOrder,
+    finalizeOrder,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

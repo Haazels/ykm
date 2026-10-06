@@ -54,6 +54,7 @@ export interface OpenRazorpayCheckoutArgs {
   keyId: string;
   buyerName: string;
   buyerEmail?: string;
+  preferredMethod?: "card" | "netbanking" | "upi";
   onSuccess: (response: {
     razorpay_order_id: string;
     razorpay_payment_id: string;
@@ -69,10 +70,17 @@ export async function openRazorpayCheckout({
   keyId,
   buyerName,
   buyerEmail,
+  preferredMethod,
   onSuccess,
   onDismiss,
 }: OpenRazorpayCheckoutArgs) {
   await loadRazorpayScript();
+
+  const prefill: Record<string, string> = {
+    name: buyerName,
+  };
+  if (buyerEmail) prefill.email = buyerEmail;
+  if (preferredMethod) prefill.method = preferredMethod;
 
   const rzp = new window.Razorpay({
     key: keyId,
@@ -80,11 +88,12 @@ export async function openRazorpayCheckout({
     currency,
     name: "YOU KNOW ME",
     order_id: razorpayOrderId,
-    prefill: { name: buyerName, email: buyerEmail },
-    theme: { color: "#000000" },
+    prefill,
+    theme: { color: "#eab308" },
     handler: onSuccess,
     modal: { ondismiss: onDismiss },
   });
 
   rzp.open();
 }
+

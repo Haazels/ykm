@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { createRazorpayOrder } from "@/lib/razorpay/server";
+import { createRazorpayOrder, createRazorpayUpiQr } from "@/lib/razorpay/server";
 import { PRODUCTS } from "@/lib/products";
 
 interface CartItemInput {
@@ -23,6 +23,10 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const items: CartItemInput[] = body?.items;
+    const paymentMethod: string = body?.paymentMethod || "card";
+    const customerName: string = body?.customerName || "Customer";
+    const orderNumber: string =
+      body?.orderNumber || `YKM-${Date.now().toString(36).toUpperCase()}`;
 
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "Cart is empty." }, { status: 400 });
@@ -89,15 +93,31 @@ export async function POST(request: Request) {
 
     const { order, keyId } = await createRazorpayOrder(
       amountInPaise,
-      `ykm_${Date.now()}`
+      orderNumber
     );
+
+    // If customer selected UPI (or if QR generation is requested),
+    // dynamically generate the dynamic UPI QR code with the EXACT order amount.
+    let upiData = null;
+    if (paymentMethod === "upi" || body?.generateQr) {
+      upiData = await createRazorpayUpiQr({
+        amountInPaise,
+        receipt: orderNumber,
+        orderId: order.id,
+        customerName,
+      });
+    }
 
     return NextResponse.json({
       razorpayOrderId: order.id,
+      orderNumber,
       amount: order.amount,
+      totalRupees,
       currency: order.currency,
       keyId,
+      upi: upiData,
     });
+
   } catch (err: any) {
     console.error("create-order failed:", err);
     const errorDetails =

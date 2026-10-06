@@ -16,7 +16,7 @@ export default function Toast() {
           transition={{ duration: 0.3 }}
           role="status"
           aria-live="polite"
-          className="fixed bottom-6 left-1/2 z-[9999] whitespace-nowrap rounded-[10px] border border-[#333] bg-[#1e1e1e] px-5 py-3 text-[13px] font-medium text-white"
+          className="fixed bottom-6 left-1/2 z-[9999] max-w-[calc(100vw-3rem)] rounded-[10px] border border-[#333] bg-[#1e1e1e] px-5 py-3 text-[13px] font-medium text-white text-center"
         >
           {tone === "accent" ? (
             <>

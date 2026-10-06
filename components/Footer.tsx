@@ -6,7 +6,7 @@ import { SOCIAL_LINKS } from "@/lib/content";
 import { useStats } from "@/context/StatsContext";
 
 export default function Footer() {
-  const { subBase } = useStats();
+  const { subBase, isLoading } = useStats();
 
   return (
     <motion.footer
@@ -47,7 +47,11 @@ export default function Footer() {
             </span>
             <span className="text-[15px] font-semibold text-white">{link.handle}</span>
             <span className="text-xs font-bold text-accent">
-              {link.statId === "yt" ? `${(subBase / 1000).toFixed(1)}K Subscribers` : link.stat}
+              {link.statId === "yt"
+                ? isLoading
+                  ? "Loading…"
+                  : `${(subBase / 1000).toFixed(1)}K Subscribers`
+                : link.stat}
             </span>
           </a>
         ))}

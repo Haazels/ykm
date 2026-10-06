@@ -9,7 +9,7 @@ import { useStats } from "@/context/StatsContext";
 import { CONTACT_EMAIL } from "@/lib/content";
 
 export default function AboutVideos() {
-  const { subBase, viewBase, setSubBase, setViewBase } = useStats();
+  const { subBase, viewBase, videoCount, isLoading, isError, setSubBase, setViewBase } = useStats();
 
   return (
     <section id="about" className="mx-auto max-w-[1200px] px-6 py-20 md:px-8">
@@ -84,17 +84,31 @@ export default function AboutVideos() {
           </div>
 
           <div className="mb-10 mt-2 flex flex-col gap-6">
+            {isError && (
+              <div className="flex items-center gap-2 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-2 text-[11px] text-muted">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#ff4444]" />
+                Showing cached stats — live API unavailable
+              </div>
+            )}
             <LiveStat
               base={subBase}
               format={(n) => (n / 1000).toFixed(1) + "K+"}
               label="subscribed"
+              isLoading={isLoading}
               onTick={setSubBase}
             />
             <LiveStat
               base={viewBase}
               format={(n) => (n / 1000).toFixed(0) + "K+"}
               label="views"
+              isLoading={isLoading}
               onTick={setViewBase}
+            />
+            <LiveStat
+              base={videoCount}
+              format={(n) => String(n)}
+              label="videos"
+              isLoading={isLoading}
             />
           </div>
 

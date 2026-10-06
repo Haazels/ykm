@@ -7,7 +7,7 @@ import { TESTIMONIALS } from "@/lib/content";
 
 export default function Reviews() {
   return (
-    <section className="bg-[#0d0d0d] px-4 py-20">
+    <section className="overflow-x-hidden bg-[#0d0d0d] px-4 py-20">
       <motion.h2
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -24,8 +24,8 @@ export default function Reviews() {
         {TESTIMONIALS.map((r, i) => (
           <motion.div
             key={r.name}
-            initial={{ opacity: 0, x: 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: i * 0.1 }}
             className="review-card flex-shrink-0 basis-[280px] scroll-snap-start rounded-2xl border border-[#222] bg-card p-5 transition-[border-color,box-shadow] duration-300 hover:border-accent/30 hover:shadow-[0_8px_32px_rgba(255,215,0,0.1)]"
